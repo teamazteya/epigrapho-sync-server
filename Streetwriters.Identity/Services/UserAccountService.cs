@@ -118,7 +118,11 @@ namespace Streetwriters.Identity.Services
 
             await WampServers.NotesnookServer.PublishMessageAsync(IdentityServerTopics.ClearCacheTopic, new ClearCacheMessage(removedKeys));
             await WampServers.MessengerServer.PublishMessageAsync(IdentityServerTopics.ClearCacheTopic, new ClearCacheMessage(removedKeys));
-            await WampServers.SubscriptionServer.PublishMessageAsync(IdentityServerTopics.ClearCacheTopic, new ClearCacheMessage(removedKeys));
+            // Epigrapho: a self-hosted server has no subscription server, and
+            // publishing to one retries the connection forever, which hung every
+            // session clear (password reset and change, "log out other devices").
+            if (!Constants.IS_SELF_HOSTED)
+                await WampServers.SubscriptionServer.PublishMessageAsync(IdentityServerTopics.ClearCacheTopic, new ClearCacheMessage(removedKeys));
             // await SendLogoutMessageAsync(user.Id.ToString(), "Session revoked.");
             return true;
         }
