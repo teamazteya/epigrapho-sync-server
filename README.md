@@ -6,6 +6,7 @@ Este es el servidor de sincronización de [Epigrapho](https://github.com/teamazt
 - la recuperación de cuenta termina en una página que muestra un código para pegar en la app, porque Epigrapho no tiene app web;
 - en un servidor propio (`SELF_HOSTED=1`), cada persona puede guardar hasta `EPIGRAPHO_STORAGE_LIMIT_MB` (500 por defecto) de adjuntos;
 - las imágenes se publican en `ghcr.io/teamazteya/epigrapho-{sync,identity,sse}`.
+- el almacenamiento S3 es [Garage](https://garagehq.deuxfleurs.fr/) en lugar de MinIO, que dejó de publicar imágenes en 2025. La forma en que corre está en `deploy/`.
 
 Lo que sigue es el README de upstream.
 

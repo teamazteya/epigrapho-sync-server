@@ -1,0 +1,27 @@
+{
+	email support@azteya.tech
+}
+
+sync.azteya.tech {
+	reverse_proxy notesnook-server:5264
+}
+
+# The identity server reads the client IP from CF-Connecting-IP (upstream runs
+# behind Cloudflare); Caddy sets it so rate limits are per person.
+auth.azteya.tech {
+	reverse_proxy identity-server:8264 {
+		header_up CF-Connecting-IP {remote_host}
+	}
+}
+
+# Server-sent events: no buffering.
+events.azteya.tech {
+	reverse_proxy sse-server:7264 {
+		flush_interval -1
+	}
+}
+
+# Presigned S3 URLs are signed for this host, which Caddy passes through.
+files.azteya.tech {
+	reverse_proxy notesnook-s3:3900
+}
