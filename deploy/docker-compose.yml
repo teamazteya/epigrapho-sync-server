@@ -17,11 +17,20 @@ x-server-discovery: &server-discovery
 x-env-files: &env-files
   - .env
 
+# Logs carry IP addresses, so they rotate instead of growing forever: at most
+# 3 files of 10 MB per service (PRIVACY.md in the app repo says so).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
 services:
   notesnook-db:
     image: mongo:7.0.12
     hostname: notesnook-db
     restart: unless-stopped
+    logging: *logging
     volumes:
       - dbdata:/data/db
     networks: [epigrapho]
@@ -39,6 +48,7 @@ services:
   notesnook-s3:
     image: dxflrs/garage:v2.4.1
     restart: unless-stopped
+    logging: *logging
     networks: [epigrapho]
     volumes:
       - ./garage.toml:/etc/garage.toml:ro
@@ -48,6 +58,7 @@ services:
   identity-server:
     image: ghcr.io/teamazteya/epigrapho-identity:${EPIGRAPHO_TAG}
     restart: unless-stopped
+    logging: *logging
     volumes:
       # ASP.NET Data Protection keys: without them every deploy voids pending
       # confirmation and recovery links.
@@ -69,6 +80,7 @@ services:
   notesnook-server:
     image: ghcr.io/teamazteya/epigrapho-sync:${EPIGRAPHO_TAG}
     restart: unless-stopped
+    logging: *logging
     volumes:
       # ASP.NET Data Protection keys: without them every deploy voids pending
       # confirmation and recovery links.
@@ -97,6 +109,7 @@ services:
   sse-server:
     image: ghcr.io/teamazteya/epigrapho-sse:${EPIGRAPHO_TAG}
     restart: unless-stopped
+    logging: *logging
     env_file: *env-files
     depends_on: [identity-server, notesnook-server]
     volumes:
@@ -116,6 +129,7 @@ services:
   caddy:
     image: caddy:2.10.2-alpine
     restart: unless-stopped
+    logging: *logging
     ports:
       - "80:80"
       - "443:443"
@@ -130,6 +144,7 @@ services:
   autoheal:
     image: willfarrell/autoheal:1.2.0
     restart: always
+    logging: *logging
     environment:
       - AUTOHEAL_CONTAINER_LABEL=all
       - AUTOHEAL_INTERVAL=60

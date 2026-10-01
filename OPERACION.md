@@ -39,6 +39,8 @@ Los servicios:
 - `caddy`: HTTPS.
 - `autoheal`: reinicia el contenedor que se quede *unhealthy*.
 
+Los logs rotan solos: cada servicio guarda como máximo 3 archivos de 10 MB (`x-logging` en `docker-compose.yml`). Incluyen direcciones IP, y `PRIVACY.md` de la app promete que no se acumulan.
+
 ## Reiniciar
 
 ```
