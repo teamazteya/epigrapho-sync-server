@@ -1,0 +1,8 @@
+[Unit]
+Description=Epigrapho sync server nightly backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/epigrapho/backup.sh
