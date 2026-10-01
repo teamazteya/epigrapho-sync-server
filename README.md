@@ -1,3 +1,16 @@
+# Epigrapho Sync Server
+
+Este es el servidor de sincronización de [Epigrapho](https://github.com/teamazteya/epigrapho), un fork del [Notesnook Sync Server](https://github.com/streetwriters/notesnook-sync-server) bajo la misma licencia AGPL-3.0. Los cambios, todos en la rama `epigrapho`, son:
+
+- el nombre que ven las personas ("Epigrapho") y los correos y páginas en español;
+- la recuperación de cuenta termina en una página que muestra un código para pegar en la app, porque Epigrapho no tiene app web;
+- en un servidor propio (`SELF_HOSTED=1`), cada persona puede guardar hasta `EPIGRAPHO_STORAGE_LIMIT_MB` (500 por defecto) de adjuntos;
+- las imágenes se publican en `ghcr.io/teamazteya/epigrapho-{sync,identity,sse}`.
+
+Lo que sigue es el README de upstream.
+
+---
+
 # Notesnook Sync Server
 
 This repo contains the full source code of the Notesnook Sync Server licensed under AGPLv3.

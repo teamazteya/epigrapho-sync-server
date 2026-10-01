@@ -6,6 +6,8 @@ using Streetwriters.Common.Models;
 
 namespace Notesnook.API.Helpers
 {
+    public sealed class StorageLimitExceededException() : Exception("Storage limit exceeded.");
+
     class StorageHelper
     {
         const long MB = 1024 * 1024;

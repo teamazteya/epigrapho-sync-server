@@ -55,6 +55,7 @@ namespace Streetwriters.Identity.Controllers
     {
         private static readonly string emailConfirmedPageHtml = HtmlHelper.ReadMinifiedHtmlFile("Templates/EmailConfirmedPage.html");
         private static readonly string emailConfirmErrorPageHtml = HtmlHelper.ReadMinifiedHtmlFile("Templates/EmailConfirmErrorPage.html");
+        private static readonly string recoveryCodePageHtml = HtmlHelper.ReadMinifiedHtmlFile("Templates/RecoveryCodePage.html");
 
         private IPersistedGrantStore PersistedGrantStore { get; set; }
         private ITokenGenerationService TokenGenerationService { get; set; }
@@ -100,7 +101,7 @@ namespace Streetwriters.Identity.Controllers
                         if (await UserManager.IsEmailConfirmedAsync(user))
                         {
                             return Content(
-                                emailConfirmedPageHtml.Replace("{{subheading}}", "Your email is already verified."),
+                                emailConfirmedPageHtml.Replace("{{subheading}}", "Tu correo ya estaba confirmado."),
                                 "text/html"
                             );
                         }
@@ -109,7 +110,7 @@ namespace Streetwriters.Identity.Controllers
                         if (!result.Succeeded)
                         {
                             return Content(
-                                emailConfirmErrorPageHtml.Replace("{{errors}}", string.Join(" ", result.Errors.ToErrors())),
+                                emailConfirmErrorPageHtml.Replace("{{errors}}", "El enlace no es válido o ya venció."),
                                 "text/html"
                             );
                         }
@@ -124,7 +125,7 @@ namespace Streetwriters.Identity.Controllers
                             await MFAService.EnableMFAAsync(user, MFAMethods.Email);
 
                         return Content(
-                            emailConfirmedPageHtml.Replace("{{subheading}}", "Your email has been confirmed."),
+                            emailConfirmedPageHtml.Replace("{{subheading}}", "Tu correo quedó confirmado."),
                             "text/html"
                         );
                     }
@@ -134,8 +135,13 @@ namespace Streetwriters.Identity.Controllers
                             return BadRequest("Invalid token.");
 
                         var authorizationCode = await UserManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, "PasswordResetAuthorizationCode");
-                        var redirectUrl = $"{client.AccountRecoveryRedirectURL}?userId={userId}&code={authorizationCode}";
-                        return RedirectPermanent(redirectUrl);
+                        // Epigrapho has no web app to finish the recovery in, so the
+                        // person copies "userId:code" from this page into the app.
+                        Response.Headers.CacheControl = "no-store";
+                        return Content(
+                            recoveryCodePageHtml.Replace("{{code}}", System.Net.WebUtility.HtmlEncode($"{userId}:{authorizationCode}")),
+                            "text/html"
+                        );
                     }
                 default:
                     return BadRequest("Invalid type.");

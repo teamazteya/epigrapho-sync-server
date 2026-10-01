@@ -59,7 +59,11 @@ namespace Notesnook.API.Controllers
                     return Ok(Request.GetEncodedUrl() + "&access_token=" + Request.Headers.Authorization.ToString().Replace("Bearer ", ""));
                 }
 
-                if (Constants.IS_SELF_HOSTED) await UploadFileAsync(userId, name, fileSize);
+                if (Constants.IS_SELF_HOSTED)
+                {
+                    if (await s3Service.WouldExceedStoredLimitAsync(userId, fileSize)) return StorageLimitExceeded();
+                    await UploadFileAsync(userId, name, fileSize);
+                }
                 else await UploadFileWithChecksAsync(userId, name, fileSize);
 
                 return Ok();
@@ -186,6 +190,10 @@ namespace Notesnook.API.Controllers
                 await s3Service.CompleteMultipartUploadAsync(userId, uploadRequestWrapper.ToRequest());
                 return Ok();
             }
+            catch (StorageLimitExceededException)
+            {
+                return StorageLimitExceeded();
+            }
             catch (Exception ex) when (S3TransientErrorClassifier.IsTransient(ex))
             {
                 return StorageUnavailable(ex);
@@ -195,6 +203,12 @@ namespace Notesnook.API.Controllers
                 logger.LogError(ex, "Error completing multipart upload for user.");
                 return BadRequest(new { error = "Failed to complete multipart upload." });
             }
+        }
+
+        // The client maps this error to its own translated message.
+        private IActionResult StorageLimitExceeded()
+        {
+            return StatusCode(413, new { error = "Storage limit exceeded." });
         }
 
         private IActionResult StorageUnavailable(Exception exception)

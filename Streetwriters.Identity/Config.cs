@@ -64,7 +64,7 @@ namespace Streetwriters.Identity
             {
                 new Client
                 {
-                    ClientName = "Notesnook",
+                    ClientName = "Epigrapho",
                     ClientId = "notesnook",
                     AllowedGrantTypes = { GrantType.ResourceOwnerPassword, MFA_GRANT_TYPE, MFA_PASSWORD_GRANT_TYPE, EMAIL_GRANT_TYPE, },
                     RequirePkce = false,

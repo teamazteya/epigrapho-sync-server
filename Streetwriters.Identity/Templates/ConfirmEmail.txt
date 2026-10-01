@@ -1,17 +1,10 @@
-Confirm your email to activate your {{app_name}} account.
+¡Hola!
 
-************
-{{app_name}}
-************
+Gracias por crear tu cuenta de {{app_name}}. Confirma tu correo para activarla y empezar a sincronizar tus notas:
 
-Hey there!
-
-Thank you so much for signing up on {{app_name}}!
-
-Please confirm your {{app_name}} account by going to this link: {{confirm_link}}.
+{{confirm_link}}
 
 -----------
 
-This email has been sent to you because you signed up on {{app_name}} a service of Streetwriters (Private) Ltd.
-1st Floor, Valley Plaza, Mardowal Chowk, Naushera
-Khushab, Punjab 41100 Pakistan
+Recibes este correo porque tienes una cuenta de Epigrapho, una app de Azteya.
+¿Dudas? Escríbenos a support@azteya.tech.

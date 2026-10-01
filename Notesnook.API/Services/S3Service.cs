@@ -204,6 +204,31 @@ namespace Notesnook.API.Services
                 throw new Exception("Could not delete directory.");
         }
 
+        // Epigrapho: on a self-hosted server the cap is what the person has
+        // stored, not what they uploaded this month (upstream's rule).
+        // ponytail: lists the person's objects on every upload, O(objects); keep a
+        // running total in UsersSettings if someone reaches thousands of attachments.
+        public async Task<bool> WouldExceedStoredLimitAsync(string userId, long fileSize)
+        {
+            var request = new ListObjectsV2Request
+            {
+                BucketName = INTERNAL_BUCKET_NAME,
+                Prefix = $"{userId}/",
+            };
+
+            long stored = 0;
+            ListObjectsV2Response response;
+            do
+            {
+                response = await S3InternalClient.ExecuteWithFailoverAsync((client) => client.ListObjectsV2Async(request), operationName: "ListObjectsV2");
+                foreach (var obj in response.S3Objects) stored += obj.Size;
+                request.ContinuationToken = response.NextContinuationToken;
+            }
+            while (response.IsTruncated);
+
+            return stored + fileSize > Constants.EPIGRAPHO_STORAGE_LIMIT_BYTES;
+        }
+
         public async Task<long> GetObjectSizeAsync(string userId, string name)
         {
             var url = await this.GetPresignedURLAsync(userId, name, HttpVerb.HEAD, S3ClientMode.INTERNAL);
@@ -324,7 +349,16 @@ namespace Notesnook.API.Services
             userSettings.StorageLimit = StorageHelper.RolloverStorageLimit(userSettings.StorageLimit);
             long fileSize = 0;
 
-            if (!Constants.IS_SELF_HOSTED)
+            if (Constants.IS_SELF_HOSTED)
+            {
+                fileSize = await GetMultipartUploadSizeAsync(userId, uploadRequest.Key, uploadRequest.UploadId);
+                if (await WouldExceedStoredLimitAsync(userId, fileSize))
+                {
+                    await this.AbortMultipartUploadAsync(userId, uploadRequest.Key, uploadRequest.UploadId);
+                    throw new StorageLimitExceededException();
+                }
+            }
+            else
             {
                 var subscription = await ServiceAccessor.UserSubscriptionService.GetUserSubscriptionAsync(Clients.Notesnook.Id, userId) ?? throw new Exception("User subscription not found.");
 

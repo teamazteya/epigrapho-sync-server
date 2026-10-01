@@ -1,11 +1,7 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# GitHub recommends pinning actions to a commit SHA.
-# To get a newer version, you will need to update the SHA.
-# You can also reference a tag or branch, but the action may change without warning.
+# Epigrapho: publishes the three images the Epigrapho sync server runs to
+# GitHub Container Registry, for arm64 (the Oracle A1 VM) and amd64 (local
+# tests). Tags look like v1.0-beta.38-ep.1: the upstream tag it is based on and
+# an Epigrapho counter.
 
 name: Publish Docker images
 
@@ -13,33 +9,26 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 jobs:
   push_to_registry:
-    name: Push Docker image to Docker Hub
+    name: Push ${{ matrix.repos.image }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         repos:
-          - image: streetwriters/notesnook-sync
+          - image: ghcr.io/teamazteya/epigrapho-sync
             file: ./Notesnook.API/Dockerfile
             context: .
 
-          - image: streetwriters/cors-proxy
-            file: ./cors-proxy/Dockerfile
-            context: ./cors-proxy/
-
-          - image: streetwriters/identity
+          - image: ghcr.io/teamazteya/epigrapho-identity
             file: ./Streetwriters.Identity/Dockerfile
             context: .
 
-          - image: streetwriters/sse
+          - image: ghcr.io/teamazteya/epigrapho-sse
             file: ./Streetwriters.Messenger/Dockerfile
             context: .
-
-          - image: streetwriters/notesnook-inbox
-            file: ./Notesnook.Inbox.API/Dockerfile
-            context: ./Notesnook.Inbox.API/
     permissions:
       packages: write
       contents: read
@@ -49,34 +38,29 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
-      # Setup Buildx
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v3
         with:
           platforms: linux/amd64,linux/arm64
 
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          ecr: auto
-          logout: true
-
-      # Pull previous image from docker hub to use it as cache to improve the image build time.
-      - name: docker pull cache image
-        continue-on-error: true
-        run: docker pull ${{ matrix.repos.image }}:latest
-
-      # Setup QEMU
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ matrix.repos.image }}
+          tags: |
+            type=ref,event=tag
+            type=sha
 
       - name: Build and push Docker image
         id: push
@@ -87,11 +71,13 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: ${{ matrix.repos.image }}:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.repos.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.repos.image }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: index.docker.io/${{ matrix.repos.image }}
+          subject-name: ${{ matrix.repos.image }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true

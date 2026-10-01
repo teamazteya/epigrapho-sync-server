@@ -1,17 +1,10 @@
-Confirm your new email to change it for your {{app_name}} account.
-
-************
-{{app_name}}
-************
-
-Please use the following verification code to change to your account email:
+Usa este código para cambiar el correo de tu cuenta de {{app_name}}:
 
 {{code}}
 
-If you did not request a verification code, please report this to us at support@streetwriters.co
+Si no lo pediste, ignora este correo y avísanos en support@azteya.tech.
 
-------------
+-----------
 
-This email has been sent to you because you signed up on {{app_name}} a service of Streetwriters (Private) Ltd.
-1st Floor, Valley Plaza, Mardowal Chowk, Naushera
-Khushab, Punjab 41100 Pakistan
+Recibes este correo porque tienes una cuenta de Epigrapho, una app de Azteya.
+¿Dudas? Escríbenos a support@azteya.tech.

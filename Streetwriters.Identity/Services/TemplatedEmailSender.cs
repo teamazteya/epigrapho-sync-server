@@ -64,35 +64,35 @@ namespace Streetwriters.Identity.Services
         {
             Html = HtmlHelper.ReadMinifiedHtmlFile("Templates/Email2FACode.html"),
             Text = File.ReadAllText("Templates/Email2FACode.txt"),
-            Subject = "Your {{app_name}} account 2FA code",
+            Subject = "Tu código para entrar a {{app_name}}",
         };
 
         readonly EmailTemplate ConfirmEmailTemplate = new()
         {
             Html = HtmlHelper.ReadMinifiedHtmlFile("Templates/ConfirmEmail.html"),
             Text = File.ReadAllText("Templates/ConfirmEmail.txt"),
-            Subject = "Confirm your {{app_name}} account",
+            Subject = "Confirma tu cuenta de {{app_name}}",
         };
 
         readonly EmailTemplate ConfirmChangeEmailTemplate = new()
         {
             Html = HtmlHelper.ReadMinifiedHtmlFile("Templates/EmailChangeConfirmation.html"),
             Text = File.ReadAllText("Templates/EmailChangeConfirmation.txt"),
-            Subject = "Change {{app_name}} account email address",
+            Subject = "Confirma tu nuevo correo en {{app_name}}",
         };
 
         readonly EmailTemplate PasswordResetEmailTemplate = new()
         {
             Html = HtmlHelper.ReadMinifiedHtmlFile("Templates/ResetAccountPassword.html"),
             Text = File.ReadAllText("Templates/ResetAccountPassword.txt"),
-            Subject = "Reset {{app_name}} account password",
+            Subject = "Recupera tu cuenta de {{app_name}}",
         };
 
         readonly EmailTemplate FailedLoginAlertTemplate = new()
         {
             Html = HtmlHelper.ReadMinifiedHtmlFile("Templates/FailedLoginAlert.html"),
             Text = File.ReadAllText("Templates/FailedLoginAlert.txt"),
-            Subject = "Failed login attempt on your {{app_name}} account",
+            Subject = "Intento fallido de entrar a tu cuenta de {{app_name}}",
         };
 
         public async Task Send2FACodeEmailAsync(string email, string code, IClient client)

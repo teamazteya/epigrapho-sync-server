@@ -32,14 +32,14 @@ namespace Streetwriters.Common
         public static readonly Client Notesnook = new()
         {
             Id = "notesnook",
-            Name = "Notesnook",
-            SenderEmail = Constants.NOTESNOOK_SENDER_EMAIL ?? "noreply@notesnook.com",
-            SenderName = "Notesnook",
+            Name = "Epigrapho",
+            SenderEmail = Constants.NOTESNOOK_SENDER_EMAIL ?? "no-reply@azteya.tech",
+            SenderName = "Epigrapho",
             Type = ApplicationType.NOTESNOOK,
             AppId = ApplicationType.NOTESNOOK,
             AccountRecoveryRedirectURL = $"{Constants.NOTESNOOK_APP_HOST}/account/recovery",
             EmailConfirmedRedirectURL = $"{Constants.NOTESNOOK_APP_HOST}/account/verified",
-            PackageName = "com.streetwriters.notesnook",
+            PackageName = "tech.azteya.epigrapho",
             OnEmailConfirmed = async (userId) =>
             {
                 if (!Constants.IS_SELF_HOSTED)
