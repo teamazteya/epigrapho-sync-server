@@ -51,12 +51,14 @@ namespace Streetwriters.Identity.Services
 {
     public class TemplatedEmailSender : ITemplatedEmailSender
     {
-        NNGnuPGContext NNGnuPGContext { get; set; }
+        NNGnuPGContext? NNGnuPGContext { get; set; }
         IEmailSender EmailSender { get; set; }
 
         public TemplatedEmailSender(IConfiguration configuration, IEmailSender emailSender)
         {
-            NNGnuPGContext = new NNGnuPGContext(configuration.GetSection("PgpKeySettings"));
+            // Epigrapho: a self-hosted server has no PGP key, so signing would only
+            // log PrivateKeyNotFoundException before sending the mail unsigned.
+            NNGnuPGContext = Constants.IS_SELF_HOSTED ? null : new NNGnuPGContext(configuration.GetSection("PgpKeySettings"));
             EmailSender = emailSender;
         }
 

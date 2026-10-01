@@ -141,8 +141,9 @@ namespace Notesnook.API.Services
                 InboxKeys = userSettings.InboxKeys,
                 Salt = userSettings.Salt,
                 Subscription = subscription,
-                StorageUsed = userSettings.StorageLimit.Value,
-                TotalStorage = StorageHelper.GetStorageLimitForPlan(subscription),
+                // Epigrapho: self-hosted, the app shows the stored cap it enforces.
+                StorageUsed = Constants.IS_SELF_HOSTED ? await S3Service.GetStoredBytesAsync(user.UserId) : userSettings.StorageLimit.Value,
+                TotalStorage = Constants.IS_SELF_HOSTED ? Constants.EPIGRAPHO_STORAGE_LIMIT_BYTES : StorageHelper.GetStorageLimitForPlan(subscription),
                 Success = true,
                 StatusCode = 200
             };

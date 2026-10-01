@@ -210,6 +210,11 @@ namespace Notesnook.API.Services
         // running total in UsersSettings if someone reaches thousands of attachments.
         public async Task<bool> WouldExceedStoredLimitAsync(string userId, long fileSize)
         {
+            return await GetStoredBytesAsync(userId) + fileSize > Constants.EPIGRAPHO_STORAGE_LIMIT_BYTES;
+        }
+
+        public async Task<long> GetStoredBytesAsync(string userId)
+        {
             var request = new ListObjectsV2Request
             {
                 BucketName = INTERNAL_BUCKET_NAME,
@@ -226,7 +231,7 @@ namespace Notesnook.API.Services
             }
             while (response.IsTruncated);
 
-            return stored + fileSize > Constants.EPIGRAPHO_STORAGE_LIMIT_BYTES;
+            return stored;
         }
 
         public async Task<long> GetObjectSizeAsync(string userId, string name)

@@ -29,6 +29,7 @@ namespace Notesnook.API.Interfaces
         Task DeleteObjectsAsync(string userId, string[] names);
         Task DeleteDirectoryAsync(string userId);
         Task<long> GetObjectSizeAsync(string userId, string name);
+        Task<long> GetStoredBytesAsync(string userId);
         Task<bool> WouldExceedStoredLimitAsync(string userId, long fileSize);
         Task<string?> GetUploadObjectUrlAsync(string userId, string name);
         Task<string?> GetInternalUploadObjectUrlAsync(string userId, string name);
