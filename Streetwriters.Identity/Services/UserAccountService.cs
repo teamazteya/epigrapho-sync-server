@@ -151,10 +151,16 @@ namespace Streetwriters.Identity.Services
                         Errors = ["Invalid email address."]
                     };
 
+                // Epigrapho: a self-hosted server with SMTP confirms the address by
+                // email, like the hosted one. Upstream trusts any address when
+                // self-hosted, which lets an open server hand out accounts on
+                // emails nobody proved they own.
+                var confirmByEmail = !Constants.IS_SELF_HOSTED || !string.IsNullOrEmpty(Constants.SMTP_HOST);
+
                 var result = await userManager.CreateAsync(new User
                 {
                     Email = email,
-                    EmailConfirmed = Constants.IS_SELF_HOSTED,
+                    EmailConfirmed = !confirmByEmail,
                     UserName = email,
                 }, password);
 
@@ -168,9 +174,13 @@ namespace Streetwriters.Identity.Services
                     {
                         await userManager.AddClaimAsync(user, new Claim(UserService.GetClaimKey(client.Id), "believer"));
                     }
-                    else
+                    else if (userAgent != null)
                     {
-                        if (userAgent != null) await userManager.AddClaimAsync(user, new Claim("platform", PlatformFromUserAgent(userAgent)));
+                        await userManager.AddClaimAsync(user, new Claim("platform", PlatformFromUserAgent(userAgent)));
+                    }
+
+                    if (confirmByEmail)
+                    {
                         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                         var callbackUrl = UrlExtensions.TokenLink(user.Id.ToString(), code, client.Id, TokenType.CONFRIM_EMAIL);
                         if (!string.IsNullOrEmpty(user.Email) && callbackUrl != null)
