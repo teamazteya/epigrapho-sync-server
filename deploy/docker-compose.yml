@@ -48,6 +48,10 @@ services:
   identity-server:
     image: ghcr.io/teamazteya/epigrapho-identity:${EPIGRAPHO_TAG}
     restart: unless-stopped
+    volumes:
+      # ASP.NET Data Protection keys: without them every deploy voids pending
+      # confirmation and recovery links.
+      - ./dp-keys/identity-server:/app/.aspnet/DataProtection-Keys
     networks: [epigrapho]
     env_file: *env-files
     depends_on: [notesnook-db]
@@ -65,6 +69,10 @@ services:
   notesnook-server:
     image: ghcr.io/teamazteya/epigrapho-sync:${EPIGRAPHO_TAG}
     restart: unless-stopped
+    volumes:
+      # ASP.NET Data Protection keys: without them every deploy voids pending
+      # confirmation and recovery links.
+      - ./dp-keys/notesnook-server:/app/.aspnet/DataProtection-Keys
     networks: [epigrapho]
     env_file: *env-files
     depends_on: [notesnook-s3, identity-server]
@@ -91,6 +99,10 @@ services:
     restart: unless-stopped
     env_file: *env-files
     depends_on: [identity-server, notesnook-server]
+    volumes:
+      # ASP.NET Data Protection keys: without them every deploy voids pending
+      # confirmation and recovery links.
+      - ./dp-keys/sse-server:/app/.aspnet/DataProtection-Keys
     networks: [epigrapho]
     healthcheck:
       test: wget --tries=1 -nv -q http://localhost:7264/health -O- || exit 1
