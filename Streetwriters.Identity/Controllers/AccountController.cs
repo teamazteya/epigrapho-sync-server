@@ -276,6 +276,7 @@ namespace Streetwriters.Identity.Controllers
                         ArgumentNullException.ThrowIfNull(form.NewEmail);
                         ArgumentNullException.ThrowIfNull(form.Password);
                         ArgumentNullException.ThrowIfNull(form.VerificationCode);
+                        var previousEmail = user.Email;
                         var result = await UserManager.ChangeEmailAsync(user, form.NewEmail, form.VerificationCode);
                         if (result.Succeeded)
                         {
@@ -287,6 +288,7 @@ namespace Streetwriters.Identity.Controllers
                                 {
                                     await UserManager.SetUserNameAsync(user, form.NewEmail);
                                     await SendLogoutMessageAsync(user.Id.ToString(), "Email changed.");
+                                    if (previousEmail != null) await MarketingConsent.EmailChangedAsync(UserManager, user, client.Id, previousEmail);
                                     return Ok();
                                 }
                             }
@@ -295,12 +297,7 @@ namespace Streetwriters.Identity.Controllers
                     }
                 case "change_marketing_consent":
                     {
-                        var claimType = $"{client.Id}:marketing_consent";
-                        var claims = await UserManager.GetClaimsAsync(user);
-                        var marketingConsentClaim = claims.FirstOrDefault((claim) => claim.Type == claimType);
-                        if (marketingConsentClaim != null) await UserManager.RemoveClaimAsync(user, marketingConsentClaim);
-                        if (!form.Enabled)
-                            await UserManager.AddClaimAsync(user, new Claim(claimType, "false"));
+                        await MarketingConsent.SetAsync(UserManager, user, client.Id, form.Enabled, form.Locale);
                         return Ok();
                     }
 

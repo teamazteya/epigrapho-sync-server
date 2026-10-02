@@ -69,5 +69,12 @@ namespace Streetwriters.Identity.Models
         {
             get; set;
         }
+
+        // Epigrapho: the app's interface language, for El Dugout.
+        [BindProperty(Name = "locale")]
+        public string? Locale
+        {
+            get; set;
+        }
     }
 }

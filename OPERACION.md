@@ -127,6 +127,19 @@ sudo docker compose exec -T notesnook-s3 /garage bucket info attachments      # 
 
 Cada persona puede guardar hasta `EPIGRAPHO_STORAGE_LIMIT_MB` (500) de adjuntos. Para cambiar el tope, edita `.env` y corre `sudo docker compose up -d notesnook-server`.
 
+## Correos de novedades (El Dugout)
+
+Los correos de novedades son de alta: solo cuenta como "sí" quien lo marcó en la app. El servidor de identidad avisa a El Dugout cada vez que alguien acepta, se da de baja, cambia de correo o borra su cuenta, pero solo si esa persona aceptó alguna vez. El código está en `Streetwriters.Identity/Services/DugoutNotifier.cs`.
+
+En `.env`:
+
+- `EPIGRAPHO_DUGOUT_URL`: la URL de `crm_epigrapho_consent.php` en El Dugout.
+- `EPIGRAPHO_DUGOUT_SECRET`: el secreto compartido. Es el mismo que `EPIGRAPHO_CONSENT_SECRET` en el `config.php` de El Dugout. Para generarlo: `openssl rand -hex 32`.
+
+Sin esas dos, el servidor no avisa a nadie y lo dice una vez en el registro al arrancar. Si El Dugout no responde, reintenta durante una hora y deja cada fallo en el registro de `identity-server` (sin el correo completo, solo el dominio): `sudo docker compose logs identity-server | grep "El Dugout"`. Lo pendiente se pierde si el servidor se reinicia en esa hora.
+
+Para probarlo en local: `node deploy/marketing-consent-check.mjs` (la cabecera dice qué necesita).
+
 ## Secretos
 
 Viven solo en `/opt/epigrapho/.env` (permisos 600) y en el respaldo. Para cambiar uno (por ejemplo, rotar la SMTP key de Brevo o la llave del Object Storage):

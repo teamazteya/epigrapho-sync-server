@@ -32,7 +32,6 @@ namespace Streetwriters.Identity.Services
                 return null;
 
             var claims = await userManager.GetClaimsAsync(user);
-            var marketingConsentClaim = claims.FirstOrDefault((claim) => claim.Type == $"{clientId}:marketing_consent");
 
             if (await userManager.IsEmailConfirmedAsync(user) && !await userManager.GetTwoFactorEnabledAsync(user))
             {
@@ -47,7 +46,7 @@ namespace Streetwriters.Identity.Services
                 UserId = user.Id.ToString(),
                 Email = user.Email,
                 IsEmailConfirmed = user.EmailConfirmed,
-                MarketingConsent = marketingConsentClaim == null,
+                MarketingConsent = Services.MarketingConsent.Has(claims, Services.MarketingConsent.OptInClaim(clientId)),
                 MFA = new MFAConfig
                 {
                     IsEnabled = user.TwoFactorEnabled,
@@ -65,6 +64,7 @@ namespace Streetwriters.Identity.Services
 
             if (!await userManager.CheckPasswordAsync(user, password)) throw new Exception("Wrong password.");
 
+            await Services.MarketingConsent.DeletedAsync(userManager, user, clientId);
             await userManager.DeleteAsync(user);
         }
 

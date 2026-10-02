@@ -219,6 +219,7 @@ namespace Streetwriters.Identity
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseForwardedHeadersWithKnownProxies(env, "CF-Connecting-IP");
+            DugoutNotifier.Start(app.ApplicationServices.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>().CreateLogger("Streetwriters.Identity.DugoutNotifier"));
 
             app.UseCors("notesnook");
             app.UseVersion(Servers.IdentityServer);
