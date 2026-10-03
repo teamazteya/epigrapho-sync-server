@@ -21,6 +21,11 @@ events.azteya.tech {
 	}
 }
 
+# Shared notes (A5). The page fetches them from the API inside the network.
+notas.azteya.tech {
+	reverse_proxy notas:3000
+}
+
 # Presigned S3 URLs are signed for this host, which Caddy passes through.
 files.azteya.tech {
 	reverse_proxy notesnook-s3:3900

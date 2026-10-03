@@ -1,0 +1,45 @@
+#!/bin/bash
+# Epigrapho: despublica una nota compartida que alguien reportó.
+#
+#   sudo /opt/epigrapho/despublicar https://notas.azteya.tech/s/AbC123
+#
+# Hace lo mismo que "Dejar de compartir" en la app: la publicación queda
+# vacía y marcada como borrada, y el enlace muestra "Esta nota no existe o ya
+# no se comparte". La nota de la persona no se toca. Su app sigue mostrándola
+# como compartida hasta que la vuelva a abrir en el diálogo de compartir.
+set -euo pipefail
+cd "$(dirname "$(readlink -f "$0")")"
+
+url="${1:-}"
+path="${url#*://}"
+path="${path#*/}"
+path="${path%%[?#]*}"
+path="${path%/}"
+
+if [[ "$path" =~ ^s/([A-Za-z0-9_-]+)$ ]]; then
+  filter="{ Slug: '${BASH_REMATCH[1]}' }"
+elif [[ "$path" =~ ^([a-f0-9]{24})$ ]]; then
+  filter="{ ItemId: '${BASH_REMATCH[1]}' }"
+else
+  echo "No reconozco ese enlace: ${url:-(vacío)}" >&2
+  echo "Debe verse así: https://notas.azteya.tech/s/AbC123" >&2
+  exit 1
+fi
+
+result=$(docker compose exec -T notesnook-db mongosh --quiet notesnook --eval "
+const m = db.monographs.findOne($filter);
+if (!m || m.Deleted) {
+  print('NO');
+} else {
+  db.monographs.replaceOne({ _id: m._id }, {
+    _id: m._id, ItemId: m.ItemId, UserId: m.UserId,
+    Deleted: true, ViewCount: 0, SelfDestruct: false, DatePublished: m.DatePublished
+  });
+  print('OK ' + m.Title);
+}")
+
+case "$result" in
+  OK*) echo "Listo: se despublicó «${result#OK }». El enlace ya no muestra la nota." ;;
+  NO) echo "Ese enlace no tiene una nota publicada (ya estaba despublicada o no existe)." ;;
+  *) echo "Algo salió mal. Pega esto en la conversación:" >&2; echo "$result" >&2; exit 1 ;;
+esac

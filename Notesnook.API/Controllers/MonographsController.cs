@@ -49,7 +49,9 @@ namespace Notesnook.API.Controllers
     public class MonographsController(Repository<Monograph> monographs, IURLAnalyzer analyzer, SyncDeviceService syncDeviceService, WampServiceAccessor serviceAccessor, ILogger<MonographsController> logger) : ControllerBase
     {
         const string SVG_PIXEL = "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><circle r='9'/></svg>";
-        private const int MAX_DOC_SIZE = 15 * 1024 * 1024;
+        // Epigrapho: 10 MB per shared note, images included. Each one is a single
+        // Mongo document on a small VM.
+        private const int MAX_DOC_SIZE = 10 * 1024 * 1024;
 
         private static FilterDefinition<Monograph> CreateMonographFilter(string userId, Monograph monograph)
         {
@@ -211,8 +213,9 @@ namespace Notesnook.API.Controllers
                     return NotFound();
                 }
 
-                if (monograph.EncryptedContent?.Cipher.Length > MAX_DOC_SIZE || monograph.CompressedContent?.Length > MAX_DOC_SIZE)
-                    return base.BadRequest("Monograph is too big. Max allowed size is 15mb.");
+                // Epigrapho: measured as it arrives, before compression.
+                if (monograph.EncryptedContent?.Cipher.Length > MAX_DOC_SIZE || monograph.Content?.Length > MAX_DOC_SIZE)
+                    return base.BadRequest(new { error = "Monograph is too big. Max allowed size is 10mb." });
 
                 var sanitizationLevel = ContentSanitizationLevel.Unknown;
                 if (monograph.EncryptedContent == null)
@@ -335,7 +338,8 @@ namespace Notesnook.API.Controllers
         [Obsolete("This endpoint is deprecated and will be removed in future versions. Use GET /monographs/{id}/metadata instead.")]
         public async Task<IActionResult> GetMonographAnalyticsAsync([FromRoute] string id)
         {
-            if (!FeatureAuthorizationHelper.IsFeatureAllowed(Features.MONOGRAPH_ANALYTICS, Clients.Notesnook.Id, User))
+            // Epigrapho: the view count is for every account on a self-hosted server.
+            if (!Constants.IS_SELF_HOSTED && !FeatureAuthorizationHelper.IsFeatureAllowed(Features.MONOGRAPH_ANALYTICS, Clients.Notesnook.Id, User))
                 return BadRequest(new { error = "Monograph analytics are only available on the Pro & Believer plans." });
 
             var userId = this.User.GetUserId();
@@ -386,7 +390,7 @@ namespace Notesnook.API.Controllers
                 return NotFound();
             }
 
-            var isPro = FeatureAuthorizationHelper.IsFeatureAllowed(Features.MONOGRAPH_ANALYTICS, Clients.Notesnook.Id, User);
+            var isPro = Constants.IS_SELF_HOSTED || FeatureAuthorizationHelper.IsFeatureAllowed(Features.MONOGRAPH_ANALYTICS, Clients.Notesnook.Id, User);
             var totalViews = isPro ? monograph.ViewCount : 0;
 
             return Ok(new
@@ -436,8 +440,9 @@ namespace Notesnook.API.Controllers
             monograph.UserId = userId;
             monograph.DatePublished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-            if (monograph.EncryptedContent?.Cipher.Length > MAX_DOC_SIZE || monograph.CompressedContent?.Length > MAX_DOC_SIZE)
-                throw new Exception("Monograph is too big. Max allowed size is 15mb.");
+            // Epigrapho: measured as it arrives, before compression.
+            if (monograph.EncryptedContent?.Cipher.Length > MAX_DOC_SIZE || monograph.Content?.Length > MAX_DOC_SIZE)
+                throw new Exception("Monograph is too big. Max allowed size is 10mb.");
 
             monograph.Deleted = false;
             monograph.ViewCount = 0;

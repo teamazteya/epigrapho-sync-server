@@ -1,6 +1,7 @@
 # Epigrapho sync server, as it runs on the Oracle A1 VM (/opt/epigrapho).
-# Derived from the upstream docker-compose.yml: no monograph or extras, no
-# public ports except Caddy's 80/443, and every image pinned to a tag.
+# Derived from the upstream docker-compose.yml: no extras, no public ports
+# except Caddy's 80/443, and every image pinned to a tag. Shared notes (A5)
+# are served by `notas`, built from apps/monograph in the app repo.
 # Secrets live in .env next to this file (see .env.example).
 
 x-server-discovery: &server-discovery
@@ -105,6 +106,7 @@ services:
       S3_SERVICE_URL: https://files.azteya.tech
       S3_REGION: us-east-1
       S3_BUCKET_NAME: attachments
+      MONOGRAPH_PUBLIC_URL: https://notas.azteya.tech
 
   sse-server:
     image: ghcr.io/teamazteya/epigrapho-sse:${EPIGRAPHO_TAG}
@@ -125,6 +127,23 @@ services:
       start_period: 60s
     environment:
       <<: *server-discovery
+
+  # The public page of shared notes. It only reads published notes from the
+  # API, so it holds nothing worth backing up. The memory cap keeps a burst
+  # of link previews from crowding out the sync server.
+  notas:
+    image: ghcr.io/teamazteya/epigrapho-notas:sha-0cf5e2b
+    restart: unless-stopped
+    logging: *logging
+    networks: [epigrapho]
+    depends_on: [notesnook-server]
+    mem_limit: 400m
+    environment:
+      API_HOST: http://notesnook-server:5264
+      PUBLIC_API_HOST: https://sync.azteya.tech
+      PUBLIC_URL: https://notas.azteya.tech
+      # NTV, NBLA and NASB for the desktop app, which carries no key.
+      API_BIBLE_KEY: ${API_BIBLE_KEY:-}
 
   caddy:
     image: caddy:2.10.2-alpine
