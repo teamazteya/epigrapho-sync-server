@@ -106,7 +106,7 @@ services:
       S3_SERVICE_URL: https://files.azteya.tech
       S3_REGION: us-east-1
       S3_BUCKET_NAME: attachments
-      MONOGRAPH_PUBLIC_URL: https://notas.azteya.tech
+      MONOGRAPH_PUBLIC_URL: https://publica.epigrapho.app
 
   sse-server:
     image: ghcr.io/teamazteya/epigrapho-sse:${EPIGRAPHO_TAG}
@@ -141,7 +141,7 @@ services:
     environment:
       API_HOST: http://notesnook-server:5264
       PUBLIC_API_HOST: https://sync.azteya.tech
-      PUBLIC_URL: https://notas.azteya.tech
+      PUBLIC_URL: https://publica.epigrapho.app
       # NTV, NBLA and NASB for the desktop app, which carries no key.
       API_BIBLE_KEY: ${API_BIBLE_KEY:-}
 

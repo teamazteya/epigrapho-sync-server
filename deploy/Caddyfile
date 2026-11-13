@@ -21,9 +21,30 @@ events.azteya.tech {
 	}
 }
 
+# The web app (notas.epigrapho.app) reads NTV, NBLA and NASB from /api/verse
+# (W1). A plain GET, so no preflight: only the allowed origins get the header.
+(verse-cors) {
+	@web header_regexp Origin ^(https://notas\.epigrapho\.app|http://localhost:\d+)$
+	header @web Access-Control-Allow-Origin {http.request.header.Origin}
+	header /api/* Vary Origin
+}
+
 # Shared notes (A5). The page fetches them from the API inside the network.
-notas.azteya.tech {
+publica.epigrapho.app {
+	import verse-cors
 	reverse_proxy notas:3000
+}
+
+# The old address (A5 to v1.6.0, W1). Installed apps up to v1.6.0 ask it for
+# verses, so /api stays forever; old links move to the new address.
+notas.azteya.tech {
+	import verse-cors
+	handle /api/* {
+		reverse_proxy notas:3000
+	}
+	handle {
+		redir https://publica.epigrapho.app{uri} 301
+	}
 }
 
 # Presigned S3 URLs are signed for this host, which Caddy passes through.

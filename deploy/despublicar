@@ -1,7 +1,9 @@
 #!/bin/bash
 # Epigrapho: despublica una nota compartida que alguien reportó.
 #
-#   sudo /opt/epigrapho/despublicar https://notas.azteya.tech/s/AbC123
+#   sudo /opt/epigrapho/despublicar https://publica.epigrapho.app/s/AbC123
+#
+# Acepta también los enlaces viejos (notas.azteya.tech): solo lee la ruta.
 #
 # Hace lo mismo que "Dejar de compartir" en la app: la publicación queda
 # vacía y marcada como borrada, y el enlace muestra "Esta nota no existe o ya
@@ -22,7 +24,7 @@ elif [[ "$path" =~ ^([a-f0-9]{24})$ ]]; then
   filter="{ ItemId: '${BASH_REMATCH[1]}' }"
 else
   echo "No reconozco ese enlace: ${url:-(vacío)}" >&2
-  echo "Debe verse así: https://notas.azteya.tech/s/AbC123" >&2
+  echo "Debe verse así: https://publica.epigrapho.app/s/AbC123" >&2
   exit 1
 fi
 

@@ -127,11 +127,13 @@ sudo docker compose exec -T notesnook-s3 /garage bucket info attachments      # 
 
 Cada persona puede guardar hasta `EPIGRAPHO_STORAGE_LIMIT_MB` (500) de adjuntos. Para cambiar el tope, edita `.env` y corre `sudo docker compose up -d notesnook-server`.
 
-## Notas compartidas (notas.azteya.tech)
+## Notas compartidas (publica.epigrapho.app)
 
-Cuando alguien comparte una nota desde la app, la API la guarda y el servicio `notas` la muestra en `https://notas.azteya.tech/s/<nota>`. La imagen sale del repo de la app (`apps/monograph`, workflow "Epigrapho notas") y su versión está fijada en `docker-compose.yml`. Usa como máximo 400 MB de memoria; en reposo, unos 140 MB.
+Cuando alguien comparte una nota desde la app, la API la guarda y el servicio `notas` la muestra en `https://publica.epigrapho.app/s/<nota>`. La imagen sale del repo de la app (`apps/monograph`, workflow "Epigrapho notas") y su versión está fijada en `docker-compose.yml`. Usa como máximo 400 MB de memoria; en reposo, unos 140 MB.
 
-El mismo servicio entrega a la app de escritorio el texto de NTV, NBLA y NASB (`/api/verse`), porque la app instalada no lleva la llave de API.Bible. La llave va en `.env` como `API_BIBLE_KEY`. Sin ella, esas tres traducciones caen a las que vienen en la app. Cada dirección puede pedir hasta 60 versículos nuevos por minuto, y cada versículo se guarda un día en memoria, para no gastar la cuota diaria de la llave.
+La dirección vieja, `notas.azteya.tech`, sigue viva para siempre: los enlaces que ya se compartieron pasan a `publica.epigrapho.app` con una redirección 301, y `/api/*` responde ahí mismo, sin redirección, porque las apps instaladas hasta la v1.6.0 piden los versículos ahí. Las dos direcciones están en `deploy/Caddyfile`, y el registro DNS de `publica` es un A a la VM, en Hostinger.
+
+El mismo servicio entrega a las apps el texto de NTV, NBLA y NASB (`/api/verse`), porque las apps no llevan la llave de API.Bible. La web (`notas.epigrapho.app`) también lo pide, desde el navegador: Caddy le pone la cabecera CORS solo a ese origen y a `localhost`. La llave va en `.env` como `API_BIBLE_KEY`. Sin ella, esas tres traducciones caen a las que vienen en la app. Cada dirección puede pedir hasta 60 versículos nuevos por minuto, y cada versículo se guarda un día en memoria, para no gastar la cuota diaria de la llave.
 
 ### Despublicar una nota reportada
 
@@ -141,9 +143,9 @@ Si alguien reporta una nota que rompe las reglas de `PRIVACY.md` ("Notas compart
    ```
    ssh -i $HOME\.ssh\epigrapho_sync ubuntu@163.192.144.182
    ```
-2. Pega esto, cambiando el enlace por el de la nota reportada:
+2. Pega esto, cambiando el enlace por el de la nota reportada (sirven los de las dos direcciones):
    ```
-   sudo /opt/epigrapho/despublicar https://notas.azteya.tech/s/AbC123
+   sudo /opt/epigrapho/despublicar https://publica.epigrapho.app/s/AbC123
    ```
 3. Debe responder `Listo: se despublicó «…»`. Si dice que no la encuentra, ya estaba despublicada. Si dice "Algo salió mal", copia lo que salió y pégalo en la conversación con Claude.
 4. Escribe `exit` para salir.
