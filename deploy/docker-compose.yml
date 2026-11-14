@@ -132,7 +132,7 @@ services:
   # API, so it holds nothing worth backing up. The memory cap keeps a burst
   # of link previews from crowding out the sync server.
   notas:
-    image: ghcr.io/teamazteya/epigrapho-notas:v1.6.1
+    image: ghcr.io/teamazteya/epigrapho-notas:v1.7.0
     restart: unless-stopped
     logging: *logging
     networks: [epigrapho]
